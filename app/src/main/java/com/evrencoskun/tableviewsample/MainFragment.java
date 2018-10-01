@@ -1,26 +1,44 @@
+/*
+ * Copyright (c) 2018. Evren Coşkun
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ */
+
 package com.evrencoskun.tableviewsample;
 
 
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.text.Editable;
+import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.FrameLayout;
-import android.widget.RelativeLayout;
+import android.widget.AdapterView;
+import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.Spinner;
+import android.widget.TextView;
 
 import com.evrencoskun.tableview.TableView;
 import com.evrencoskun.tableview.adapter.AbstractTableAdapter;
+import com.evrencoskun.tableview.filter.Filter;
+import com.evrencoskun.tableview.pagination.Pagination;
 import com.evrencoskun.tableviewsample.tableview.TableViewAdapter;
 import com.evrencoskun.tableviewsample.tableview.TableViewListener;
-import com.evrencoskun.tableviewsample.tableview.model.Cell;
-import com.evrencoskun.tableviewsample.tableview.model.ColumnHeader;
-import com.evrencoskun.tableviewsample.tableview.model.RowHeader;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import com.evrencoskun.tableviewsample.tableview.TableViewModel;
 
 
 /**
@@ -28,216 +46,276 @@ import java.util.Random;
  */
 public class MainFragment extends Fragment {
 
-    public static final int COLUMN_SIZE = 100;
-    public static final int ROW_SIZE = 100;
+    private EditText searchField;
+    private Spinner moodFilter, genderFilter, itemsPerPage;
+    public ImageButton previousButton, nextButton;
+    public EditText pageNumberField;
+    public TextView tablePaginationDetails;
 
-    private List<RowHeader> m_jRowHeaderList;
-    private List<ColumnHeader> m_jColumnHeaderList;
-    private List<List<Cell>> m_jCellList;
+    private AbstractTableAdapter mTableViewAdapter;
+    private TableView mTableView;
+    private Filter mTableFilter; // This is used for filtering the table.
+    private Pagination mPagination; // This is used for paginating the table.
 
-    private AbstractTableAdapter m_iTableViewAdapter;
-    private TableView m_iTableView;
+    // This is a sample class that provides the cell value objects and other configurations.
+    private TableViewModel mTableViewModel;
+
+    private boolean mPaginationEnabled = false;
 
     public MainFragment() {
         // Required empty public constructor
     }
 
     @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        initData();
-
-        //setFullScreenMode();
-    }
-
-    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle
             savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_main, container, false);
+        View layout = inflater.inflate(R.layout.fragment_main, container, false);
 
-        RelativeLayout fragment_container = (RelativeLayout) view.findViewById(R.id
-                .fragment_container);
+        searchField = layout.findViewById(R.id.query_string);
+        searchField.addTextChangedListener(mSearchTextWatcher);
 
-        // Create Table view
-        m_iTableView = createTableView();
-        fragment_container.addView(m_iTableView);
+        moodFilter = layout.findViewById(R.id.mood_spinner);
+        moodFilter.setOnItemSelectedListener(mItemSelectionListener);
 
-        loadData();
-        return view;
-    }
+        genderFilter = layout.findViewById(R.id.gender_spinner);
+        genderFilter.setOnItemSelectedListener(mItemSelectionListener);
 
-    private TableView createTableView() {
-        TableView tableView = new TableView(getContext());
+        itemsPerPage = layout.findViewById(R.id.items_per_page_spinner);
 
-        // Set adapter
-        m_iTableViewAdapter = new TableViewAdapter(getContext());
-        tableView.setAdapter(m_iTableViewAdapter);
+        View tableTestContainer = layout.findViewById(R.id.table_test_container);
 
-        // Set layout params
-        FrameLayout.LayoutParams tlp = new FrameLayout.LayoutParams(FrameLayout.LayoutParams
-                .MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT);
-        tableView.setLayoutParams(tlp);
+        previousButton = layout.findViewById(R.id.previous_button);
+        nextButton = layout.findViewById(R.id.next_button);
+        pageNumberField = layout.findViewById(R.id.page_number_text);
+        tablePaginationDetails = layout.findViewById(R.id.table_details);
 
-        // Set TableView listener
-        tableView.setTableViewListener(new TableViewListener(tableView));
-        return tableView;
-    }
+        if (mPaginationEnabled) {
+            tableTestContainer.setVisibility(View.VISIBLE);
+            itemsPerPage.setOnItemSelectedListener(onItemsPerPageSelectedListener);
 
-
-    private void initData() {
-        m_jRowHeaderList = new ArrayList<>();
-        m_jColumnHeaderList = new ArrayList<>();
-        m_jCellList = new ArrayList<>();
-        for (int i = 0; i < ROW_SIZE; i++) {
-            m_jCellList.add(new ArrayList<Cell>());
-        }
-    }
-
-    private void loadData() {
-        List<RowHeader> rowHeaders = getRowHeaderList();
-        List<List<Cell>> cellList = getCellListForSorting(); // getCellList();
-        // getRandomCellList(); //
-        List<ColumnHeader> columnHeaders = getColumnHeaderList(); //getRandomColumnHeaderList(); //
-
-        m_jRowHeaderList.addAll(rowHeaders);
-        for (int i = 0; i < cellList.size(); i++) {
-            m_jCellList.get(i).addAll(cellList.get(i));
+            previousButton.setOnClickListener(mClickListener);
+            nextButton.setOnClickListener(mClickListener);
+            pageNumberField.addTextChangedListener(onPageTextChanged);
+        } else {
+            tableTestContainer.setVisibility(View.GONE);
         }
 
-        // Load all data
-        m_jColumnHeaderList.addAll(columnHeaders);
-        m_iTableViewAdapter.setAllItems(m_jColumnHeaderList, m_jRowHeaderList, m_jCellList);
+        // Let's get TableView
+        mTableView = layout.findViewById(R.id.tableview);
 
-    }
+        initializeTableView();
 
-    private List<RowHeader> getRowHeaderList() {
-        List<RowHeader> list = new ArrayList<>();
-        for (int i = 0; i < ROW_SIZE; i++) {
-            RowHeader header = new RowHeader(String.valueOf(i), "row " + i);
-            list.add(header);
+        if (mPaginationEnabled) {
+            mTableFilter = new Filter(mTableView); // Create an instance of a Filter and pass the
+            // created TableView.
+
+            // Create an instance for the TableView pagination and pass the created TableView.
+            mPagination = new Pagination(mTableView);
+
+            // Sets the pagination listener of the TableView pagination to handle
+            // pagination actions. See onTableViewPageTurnedListener variable declaration below.
+            mPagination.setOnTableViewPageTurnedListener(onTableViewPageTurnedListener);
         }
 
-        return list;
+
+        return layout;
     }
 
-    private List<ColumnHeader> getColumnHeaderList() {
-        List<ColumnHeader> list = new ArrayList<>();
+    private void initializeTableView() {
+        // Create TableView View model class  to group view models of TableView
+        mTableViewModel = new TableViewModel(getContext());
 
-        for (int i = 0; i < COLUMN_SIZE; i++) {
-            String strTitle = "column " + i;
-            if (i % 6 == 2) {
-                strTitle = "large column " + i;
+        // Create TableView Adapter
+        mTableViewAdapter = new TableViewAdapter(getContext(), mTableViewModel);
+
+        mTableView.setAdapter(mTableViewAdapter);
+        mTableView.setTableViewListener(new TableViewListener(mTableView));
+
+        // Create an instance of a Filter and pass the TableView.
+        //mTableFilter = new Filter(mTableView);
+
+        // Load the dummy data to the TableView
+        mTableViewAdapter.setAllItems(mTableViewModel.getColumnHeaderList(), mTableViewModel
+                .getRowHeaderList(), mTableViewModel.getCellList());
+
+
+        //mTableView.setHasFixedWidth(true);
+
+        /*for (int i = 0; i < mTableViewModel.getCellList().size(); i++) {
+            mTableView.setColumnWidth(i, 200);
+        }*)
+
+        //mTableView.setColumnWidth(0, -2);
+        //mTableView.setColumnWidth(1, -2);
+
+        /*mTableView.setColumnWidth(2, 200);
+        mTableView.setColumnWidth(3, 300);
+        mTableView.setColumnWidth(4, 400);
+        mTableView.setColumnWidth(5, 500);*/
+
+    }
+
+    public void filterTable(String filter) {
+        // Sets a filter to the table, this will filter ALL the columns.
+        mTableFilter.set(filter);
+    }
+
+    public void filterTableForMood(String filter) {
+        // Sets a filter to the table, this will only filter a specific column.
+        // In the example data, this will filter the mood column.
+        mTableFilter.set(TableViewModel.MOOD_COLUMN_INDEX, filter);
+    }
+
+    public void filterTableForGender(String filter) {
+        // Sets a filter to the table, this will only filter a specific column.
+        // In the example data, this will filter the gender column.
+        mTableFilter.set(TableViewModel.GENDER_COLUMN_INDEX, filter);
+    }
+
+    // The following four methods below: nextTablePage(), previousTablePage(),
+    // goToTablePage(int page) and setTableItemsPerPage(int itemsPerPage)
+    // are for controlling the TableView pagination.
+    public void nextTablePage() {
+        mPagination.nextPage();
+    }
+
+    public void previousTablePage() {
+        mPagination.previousPage();
+    }
+
+    public void goToTablePage(int page) {
+        mPagination.goToPage(page);
+    }
+
+    public void setTableItemsPerPage(int itemsPerPage) {
+        mPagination.setItemsPerPage(itemsPerPage);
+    }
+
+    // Handler for the changing of pages in the paginated TableView.
+    private Pagination.OnTableViewPageTurnedListener onTableViewPageTurnedListener = new
+            Pagination.OnTableViewPageTurnedListener() {
+        @Override
+        public void onPageTurned(int numItems, int itemsStart, int itemsEnd) {
+            int currentPage = mPagination.getCurrentPage();
+            int pageCount = mPagination.getPageCount();
+            previousButton.setVisibility(View.VISIBLE);
+            nextButton.setVisibility(View.VISIBLE);
+
+            if (currentPage == 1 && pageCount == 1) {
+                previousButton.setVisibility(View.INVISIBLE);
+                nextButton.setVisibility(View.INVISIBLE);
             }
-            ColumnHeader header = new ColumnHeader(String.valueOf(i), strTitle);
-            list.add(header);
-        }
 
-        return list;
-    }
-
-    private List<ColumnHeader> getRandomColumnHeaderList() {
-        List<ColumnHeader> list = new ArrayList<>();
-
-        for (int i = 0; i < COLUMN_SIZE; i++) {
-            String strTitle = "column " + i;
-            int nRandom = new Random().nextInt();
-            if (nRandom % 4 == 0 || nRandom % 3 == 0 || nRandom == i) {
-                strTitle = "large column " + i;
+            if (currentPage == 1) {
+                previousButton.setVisibility(View.INVISIBLE);
             }
 
-            ColumnHeader header = new ColumnHeader(String.valueOf(i), strTitle);
-            list.add(header);
+            if (currentPage == pageCount) {
+                nextButton.setVisibility(View.INVISIBLE);
+            }
+
+            tablePaginationDetails.setText(getString(R.string.table_pagination_details, String
+                    .valueOf(currentPage), String.valueOf(itemsStart), String.valueOf(itemsEnd)));
+
         }
+    };
 
-        return list;
-    }
 
-    private List<List<Cell>> getCellList() {
-        List<List<Cell>> list = new ArrayList<>();
-        for (int i = 0; i < ROW_SIZE; i++) {
-            List<Cell> cellList = new ArrayList<>();
-            for (int j = 0; j < COLUMN_SIZE; j++) {
-                String strText = "cell " + j + " " + i;
-                if (j % 4 == 0 && i % 5 == 0) {
-                    strText = "large cell " + j + " " + i + ".";
+    private AdapterView.OnItemSelectedListener mItemSelectionListener = new AdapterView
+            .OnItemSelectedListener() {
+        @Override
+        public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+            // 0. index is for empty item of spinner.
+            if (position > 0) {
+
+                String filter = Integer.toString(position);
+
+                if (parent == moodFilter) {
+                    filterTableForMood(filter);
+                } else if (parent == genderFilter) {
+                    filterTableForGender(filter);
                 }
-                String strID = j + "-" + i;
-
-                Cell cell = new Cell(strID, strText);
-                cellList.add(cell);
-            }
-            list.add(cellList);
-        }
-
-        return list;
-    }
-
-    private List<List<Cell>> getCellListForSorting() {
-        List<List<Cell>> list = new ArrayList<>();
-        for (int i = 0; i < ROW_SIZE; i++) {
-            List<Cell> cellList = new ArrayList<>();
-            for (int j = 0; j < COLUMN_SIZE; j++) {
-                Object strText = "cell " + j + " " + i;
-
-                if (j == 0) {
-                    strText = i;
-                } else if (j == 1) {
-                    int nRandom = new Random().nextInt();
-                    strText = nRandom;
-                }
-
-                String strID = j + "-" + i;
-
-                Cell cell = new Cell(strID, strText);
-                cellList.add(cell);
-            }
-            list.add(cellList);
-        }
-
-        return list;
-    }
-
-
-    private List<List<Cell>> getRandomCellList() {
-        List<List<Cell>> list = new ArrayList<>();
-        for (int i = 0; i < ROW_SIZE; i++) {
-            List<Cell> cellList = new ArrayList<>();
-            list.add(cellList);
-            for (int j = 0; j < COLUMN_SIZE; j++) {
-                String strText = "cell " + j + " " + i;
-                int nRandom = new Random().nextInt();
-                if (nRandom % 2 == 0 || nRandom % 5 == 0 || nRandom == j) {
-                    strText = "large cell  " + j + " " + i + getRandomString() + ".";
-                }
-
-                String strID = j + "-" + i;
-
-                Cell cell = new Cell(strID, strText);
-                cellList.add(cell);
             }
         }
 
-        return list;
-    }
+        @Override
+        public void onNothingSelected(AdapterView<?> parent) {
+            // Left empty intentionally.
+        }
+    };
 
+    private TextWatcher mSearchTextWatcher = new TextWatcher() {
+        @Override
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
 
-    private String getRandomString() {
-        Random r = new Random();
-        String str = " a ";
-        for (int i = 0; i < r.nextInt(); i++) {
-            str = str + " a ";
         }
 
-        return str;
-    }
+        @Override
+        public void onTextChanged(CharSequence s, int start, int before, int count) {
+            filterTable(String.valueOf(s));
+        }
 
-    private void setFullScreenMode() {
-        // Set full screen mode
-        this.getActivity().getWindow().getDecorView().setSystemUiVisibility(View
-                .SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION | View
-                .SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION // hide
-                // nav bar
-                | View.SYSTEM_UI_FLAG_FULLSCREEN // hide status bar
-                | View.SYSTEM_UI_FLAG_IMMERSIVE);
-    }
+        @Override
+        public void afterTextChanged(Editable s) {
+
+        }
+    };
+
+
+    private AdapterView.OnItemSelectedListener onItemsPerPageSelectedListener = new AdapterView
+            .OnItemSelectedListener() {
+        @Override
+        public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+            int itemsPerPage;
+            switch (parent.getItemAtPosition(position).toString()) {
+                case "All":
+                    itemsPerPage = 0;
+                    break;
+                default:
+                    itemsPerPage = Integer.valueOf(parent.getItemAtPosition(position).toString());
+            }
+
+            setTableItemsPerPage(itemsPerPage);
+        }
+
+        @Override
+        public void onNothingSelected(AdapterView<?> parent) {
+
+        }
+    };
+
+    private View.OnClickListener mClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            if (v == previousButton) {
+                previousTablePage();
+            } else if (v == nextButton) {
+                nextTablePage();
+            }
+        }
+    };
+
+    private TextWatcher onPageTextChanged = new TextWatcher() {
+        @Override
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+        }
+
+        @Override
+        public void onTextChanged(CharSequence s, int start, int before, int count) {
+            int page;
+            if (TextUtils.isEmpty(s)) {
+                page = 1;
+            } else {
+                page = Integer.valueOf(String.valueOf(s));
+            }
+
+            goToTablePage(page);
+        }
+
+        @Override
+        public void afterTextChanged(Editable s) {
+
+        }
+    };
 }
