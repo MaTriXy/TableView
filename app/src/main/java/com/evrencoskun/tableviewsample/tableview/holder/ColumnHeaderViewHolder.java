@@ -1,29 +1,37 @@
 /*
- * Copyright (c) 2018. Evren Coşkun
+ * MIT License
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Copyright (c) 2021 Evren Coşkun
  *
- *        http://www.apache.org/licenses/LICENSE-2.0
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
  *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 package com.evrencoskun.tableviewsample.tableview.holder;
 
-import android.graphics.drawable.Drawable;
-import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.evrencoskun.tableview.ITableView;
 import com.evrencoskun.tableview.adapter.recyclerview.holder.AbstractSorterViewHolder;
@@ -39,35 +47,30 @@ public class ColumnHeaderViewHolder extends AbstractSorterViewHolder {
 
     private static final String LOG_TAG = ColumnHeaderViewHolder.class.getSimpleName();
 
-    public final LinearLayout column_header_container;
-    public final TextView column_header_textview;
-    public final ImageButton column_header_sortButton;
-    public final ITableView tableView;
+    @NonNull
+    private final LinearLayout column_header_container;
+    @NonNull
+    private final TextView column_header_textview;
+    @NonNull
+    private final ImageButton column_header_sortButton;
+    @Nullable
+    private final ITableView tableView;
 
-    public final Drawable arrow_up, arrow_down;
-
-    public ColumnHeaderViewHolder(View itemView, ITableView tableView) {
+    public ColumnHeaderViewHolder(@NonNull View itemView, @Nullable ITableView tableView) {
         super(itemView);
         this.tableView = tableView;
-        column_header_textview = (TextView) itemView.findViewById(R.id.column_header_textView);
-        column_header_container = (LinearLayout) itemView.findViewById(R.id
-                .column_header_container);
-        column_header_sortButton = (ImageButton) itemView.findViewById(R.id
-                .column_header_sortButton);
-
-        // initialize drawables
-        arrow_up = ContextCompat.getDrawable(itemView.getContext(), R.drawable.ic_up);
-        arrow_down = ContextCompat.getDrawable(itemView.getContext(), R.drawable.ic_down);
+        column_header_textview = itemView.findViewById(R.id.column_header_textView);
+        column_header_container = itemView.findViewById(R.id.column_header_container);
+        column_header_sortButton = itemView.findViewById(R.id.column_header_sortButton);
 
         // Set click listener to the sort button
         column_header_sortButton.setOnClickListener(mSortButtonClickListener);
     }
 
-
     /**
      * This method is calling from onBindColumnHeaderHolder on TableViewAdapter
      */
-    public void setColumnHeader(ColumnHeader columnHeader) {
+    public void setColumnHeader(@Nullable ColumnHeader columnHeader) {
         column_header_textview.setText(String.valueOf(columnHeader.getData()));
 
         // If your TableView should have auto resize for cells & columns.
@@ -78,26 +81,27 @@ public class ColumnHeaderViewHolder extends AbstractSorterViewHolder {
         column_header_textview.requestLayout();
     }
 
-    private View.OnClickListener mSortButtonClickListener = new View.OnClickListener() {
+    @NonNull
+    private final View.OnClickListener mSortButtonClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
             if (getSortState() == SortState.ASCENDING) {
-                tableView.sortColumn(getAdapterPosition(), SortState.DESCENDING);
+                tableView.sortColumn(getBindingAdapterPosition(), SortState.DESCENDING);
             } else if (getSortState() == SortState.DESCENDING) {
-                tableView.sortColumn(getAdapterPosition(), SortState.ASCENDING);
+                tableView.sortColumn(getBindingAdapterPosition(), SortState.ASCENDING);
             } else {
                 // Default one
-                tableView.sortColumn(getAdapterPosition(), SortState.DESCENDING);
+                tableView.sortColumn(getBindingAdapterPosition(), SortState.DESCENDING);
             }
 
         }
     };
 
     @Override
-    public void onSortingStatusChanged(SortState sortState) {
-        Log.e(LOG_TAG, " + onSortingStatusChanged : x:  " + getAdapterPosition() + " old state "
-                + getSortState() + " current state : " + sortState + " visiblity: " +
-                column_header_sortButton.getVisibility());
+    public void onSortingStatusChanged(@NonNull SortState sortState) {
+        Log.e(LOG_TAG, " + onSortingStatusChanged: x:  " + getBindingAdapterPosition() + ", " +
+                "old state: " + getSortState() + ", current state: " + sortState + ", " +
+                "visibility: " + column_header_sortButton.getVisibility());
 
         super.onSortingStatusChanged(sortState);
 
@@ -106,9 +110,9 @@ public class ColumnHeaderViewHolder extends AbstractSorterViewHolder {
 
         controlSortState(sortState);
 
-        Log.e(LOG_TAG, " - onSortingStatusChanged : x:  " + getAdapterPosition() + " old state "
-                + getSortState() + " current state : " + sortState + " visiblity: " +
-                column_header_sortButton.getVisibility());
+        Log.e(LOG_TAG, " - onSortingStatusChanged: x:  " + getBindingAdapterPosition() + ", " +
+                "old state: " + getSortState() + ", current state: " + sortState + ", " +
+                "visibility: " + column_header_sortButton.getVisibility());
 
         column_header_textview.requestLayout();
         column_header_sortButton.requestLayout();
@@ -116,14 +120,14 @@ public class ColumnHeaderViewHolder extends AbstractSorterViewHolder {
         itemView.requestLayout();
     }
 
-    private void controlSortState(SortState sortState) {
+    private void controlSortState(@NonNull SortState sortState) {
         if (sortState == SortState.ASCENDING) {
             column_header_sortButton.setVisibility(View.VISIBLE);
-            column_header_sortButton.setImageDrawable(arrow_down);
+            column_header_sortButton.setImageResource(R.drawable.ic_down);
 
         } else if (sortState == SortState.DESCENDING) {
             column_header_sortButton.setVisibility(View.VISIBLE);
-            column_header_sortButton.setImageDrawable(arrow_up);
+            column_header_sortButton.setImageResource(R.drawable.ic_up);
         } else {
             column_header_sortButton.setVisibility(View.INVISIBLE);
         }

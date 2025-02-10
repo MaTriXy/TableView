@@ -1,27 +1,36 @@
 /*
- * Copyright (c) 2018. Evren Coşkun
+ * MIT License
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Copyright (c) 2021 Evren Coşkun
  *
- *        http://www.apache.org/licenses/LICENSE-2.0
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
  *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 package com.evrencoskun.tableview.layoutmanager;
 
 import android.content.Context;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
+
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.evrencoskun.tableview.ITableView;
 import com.evrencoskun.tableview.adapter.recyclerview.CellRecyclerView;
@@ -35,17 +44,21 @@ import com.evrencoskun.tableview.util.TableViewUtils;
 public class ColumnLayoutManager extends LinearLayoutManager {
     private static final String LOG_TAG = ColumnLayoutManager.class.getSimpleName();
 
-    private ITableView mTableView;
-    private CellRecyclerView mCellRowRecyclerView, mColumnHeaderRecyclerView;
-    private ColumnHeaderLayoutManager mColumnHeaderLayoutManager;
-    private CellLayoutManager mCellLayoutManager;
+    @NonNull
+    private final ITableView mTableView;
+    private CellRecyclerView mCellRowRecyclerView;
+    @NonNull
+    private final CellRecyclerView mColumnHeaderRecyclerView;
+    @NonNull
+    private final ColumnHeaderLayoutManager mColumnHeaderLayoutManager;
+    @NonNull
+    private final CellLayoutManager mCellLayoutManager;
 
     private boolean mNeedFitForVerticalScroll, mNeedFitForHorizontalScroll;
     private int mLastDx = 0;
     private int mYPosition;
 
-
-    public ColumnLayoutManager(Context context, ITableView tableView) {
+    public ColumnLayoutManager(@NonNull Context context, @NonNull ITableView tableView) {
         super(context);
         this.mTableView = tableView;
         this.mColumnHeaderRecyclerView = mTableView.getColumnHeaderRecyclerView();
@@ -67,9 +80,8 @@ public class ColumnLayoutManager extends LinearLayoutManager {
         mYPosition = getRowPosition();
     }
 
-
     @Override
-    public void measureChildWithMargins(View child, int widthUsed, int heightUsed) {
+    public void measureChildWithMargins(@NonNull View child, int widthUsed, int heightUsed) {
         super.measureChildWithMargins(child, widthUsed, heightUsed);
 
         // If has fixed width is true, than calculation of the column width is not necessary.
@@ -81,7 +93,7 @@ public class ColumnLayoutManager extends LinearLayoutManager {
     }
 
     @Override
-    public void measureChild(View child, int widthUsed, int heightUsed) {
+    public void measureChild(@NonNull View child, int widthUsed, int heightUsed) {
 
         int columnPosition = getPosition(child);
 
@@ -124,8 +136,8 @@ public class ColumnLayoutManager extends LinearLayoutManager {
         mNeedFitForHorizontalScroll = false;
     }
 
-    private void fitWidthSize(View child, int row, int column, int cellWidth, int
-            columnHeaderWidth, View columnHeaderChild) {
+    private void fitWidthSize(@NonNull View child, int row, int column, int cellWidth, int
+            columnHeaderWidth, @NonNull View columnHeaderChild) {
 
         if (cellWidth == -1) {
             // Alternatively, TableViewUtils.getWidth(child);
@@ -170,15 +182,11 @@ public class ColumnLayoutManager extends LinearLayoutManager {
                 if (mLastDx > 0) {
                     int last = findLastVisibleItemPosition();
                     //Log.e(LOG_TAG, "Warning: findFirstVisibleItemPosition is " + last);
-                    if (xPosition == last) {
-                        return true;
-                    }
+                    return xPosition == last;
                 } else if (mLastDx < 0) {
                     int first = findFirstVisibleItemPosition();
                     //Log.e(LOG_TAG, "Warning: findFirstVisibleItemPosition is " + first);
-                    if (xPosition == first) {
-                        return true;
-                    }
+                    return xPosition == first;
                 }
             }
         }
@@ -219,6 +227,7 @@ public class ColumnLayoutManager extends LinearLayoutManager {
         mNeedFitForVerticalScroll = false;
     }
 
+    @NonNull
     public AbstractViewHolder[] getVisibleViewHolders() {
         int visibleChildCount = findLastVisibleItemPosition() - findFirstVisibleItemPosition() + 1;
         int index = 0;

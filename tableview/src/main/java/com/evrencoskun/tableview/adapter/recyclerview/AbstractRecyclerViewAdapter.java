@@ -1,24 +1,34 @@
 /*
- * Copyright (c) 2018. Evren Coşkun
+ * MIT License
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Copyright (c) 2021 Evren Coşkun
  *
- *        http://www.apache.org/licenses/LICENSE-2.0
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
  *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 package com.evrencoskun.tableview.adapter.recyclerview;
 
 import android.content.Context;
-import android.support.v7.widget.RecyclerView;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.evrencoskun.tableview.adapter.recyclerview.holder.AbstractViewHolder;
 
@@ -32,15 +42,17 @@ import java.util.List;
 public abstract class AbstractRecyclerViewAdapter<T> extends RecyclerView
         .Adapter<AbstractViewHolder> {
 
+    @NonNull
     protected List<T> mItemList;
 
+    @NonNull
     protected Context mContext;
 
-    public AbstractRecyclerViewAdapter(Context context) {
+    public AbstractRecyclerViewAdapter(@NonNull Context context) {
         this(context, null);
     }
 
-    public AbstractRecyclerViewAdapter(Context context, List<T> itemList) {
+    public AbstractRecyclerViewAdapter(@NonNull Context context, @Nullable List<T> itemList) {
         mContext = context;
 
         if (itemList == null) {
@@ -55,17 +67,18 @@ public abstract class AbstractRecyclerViewAdapter<T> extends RecyclerView
         return mItemList.size();
     }
 
+    @NonNull
     public List<T> getItems() {
         return mItemList;
     }
 
-    public void setItems(List<T> itemList) {
+    public void setItems(@NonNull List<T> itemList) {
         mItemList = new ArrayList<>(itemList);
 
         this.notifyDataSetChanged();
     }
 
-    public void setItems(List<T> itemList, boolean notifyDataSet) {
+    public void setItems(@NonNull List<T> itemList, boolean notifyDataSet) {
         mItemList = new ArrayList<>(itemList);
 
         if (notifyDataSet) {
@@ -73,9 +86,9 @@ public abstract class AbstractRecyclerViewAdapter<T> extends RecyclerView
         }
     }
 
+    @Nullable
     public T getItem(int position) {
-        if (mItemList == null || mItemList.isEmpty() || position < 0 || position >= mItemList
-                .size()) {
+        if (mItemList.isEmpty() || position < 0 || position >= mItemList.size()) {
             return null;
         }
         return mItemList.get(position);
@@ -98,43 +111,38 @@ public abstract class AbstractRecyclerViewAdapter<T> extends RecyclerView
         notifyItemRangeRemoved(positionStart, itemCount);
     }
 
-    public void addItem(int position, T item) {
+    public void addItem(int position, @Nullable T item) {
         if (position != RecyclerView.NO_POSITION && item != null) {
             mItemList.add(position, item);
             notifyItemInserted(position);
         }
     }
 
-    public void addItemRange(int positionStart, List<T> items) {
+    public void addItemRange(int positionStart, @Nullable List<T> items) {
         if (items != null) {
             for (int i = 0; i < items.size(); i++) {
-                if (i != RecyclerView.NO_POSITION) {
-                    mItemList.add((i + positionStart), items.get(i));
-                }
+                mItemList.add((i + positionStart), items.get(i));
             }
 
             notifyItemRangeInserted(positionStart, items.size());
         }
     }
 
-    public void changeItem(int position, T item) {
+    public void changeItem(int position, @Nullable T item) {
         if (position != RecyclerView.NO_POSITION && item != null) {
             mItemList.set(position, item);
             notifyItemChanged(position);
         }
     }
 
-    public void changeItemRange(int positionStart, List<T> items) {
-        if (mItemList.size() > positionStart + items.size() && items != null) {
+    public void changeItemRange(int positionStart, @Nullable List<T> items) {
+        if (items != null && mItemList.size() > positionStart + items.size()) {
             for (int i = 0; i < items.size(); i++) {
-                if (i != RecyclerView.NO_POSITION) {
-                    mItemList.set(i + positionStart, items.get(i));
-                }
+                mItemList.set(i + positionStart, items.get(i));
             }
             notifyItemRangeChanged(positionStart, items.size());
         }
     }
-
 
     @Override
     public int getItemViewType(int position) {

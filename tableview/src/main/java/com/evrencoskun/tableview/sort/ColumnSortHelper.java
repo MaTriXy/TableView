@@ -1,21 +1,30 @@
 /*
- * Copyright (c) 2018. Evren Coşkun
+ * MIT License
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Copyright (c) 2021 Evren Coşkun
  *
- *        http://www.apache.org/licenses/LICENSE-2.0
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
  *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 package com.evrencoskun.tableview.sort;
+
+import androidx.annotation.NonNull;
 
 import com.evrencoskun.tableview.adapter.recyclerview.holder.AbstractSorterViewHolder;
 import com.evrencoskun.tableview.adapter.recyclerview.holder.AbstractViewHolder;
@@ -29,15 +38,16 @@ import java.util.List;
  */
 
 public class ColumnSortHelper {
+    @NonNull
+    private final List<Directive> mSortingColumns = new ArrayList<>();
+    @NonNull
+    private final ColumnHeaderLayoutManager mColumnHeaderLayoutManager;
 
-    private List<Directive> mSortingColumns = new ArrayList<>();
-    private ColumnHeaderLayoutManager mColumnHeaderLayoutManager;
-
-    public ColumnSortHelper(ColumnHeaderLayoutManager columnHeaderLayoutManager) {
+    public ColumnSortHelper(@NonNull ColumnHeaderLayoutManager columnHeaderLayoutManager) {
         this.mColumnHeaderLayoutManager = columnHeaderLayoutManager;
     }
 
-    private void sortingStatusChanged(int column, SortState sortState) {
+    private void sortingStatusChanged(int column, @NonNull SortState sortState) {
         AbstractViewHolder holder = mColumnHeaderLayoutManager.getViewHolder(column);
 
         if (holder != null) {
@@ -51,8 +61,7 @@ public class ColumnSortHelper {
         }
     }
 
-
-    public void setSortingStatus(int column, SortState status) {
+    public void setSortingStatus(int column, @NonNull SortState status) {
         Directive directive = getDirective(column);
         if (directive != EMPTY_DIRECTIVE) {
             mSortingColumns.remove(directive);
@@ -72,11 +81,12 @@ public class ColumnSortHelper {
         return mSortingColumns.size() != 0;
     }
 
+    @NonNull
     public SortState getSortingStatus(int column) {
         return getDirective(column).direction;
     }
 
-
+    @NonNull
     private Directive getDirective(int column) {
         for (int i = 0; i < mSortingColumns.size(); i++) {
             Directive directive = mSortingColumns.get(i);
@@ -88,14 +98,16 @@ public class ColumnSortHelper {
     }
 
     private static class Directive {
-        private int column;
-        private SortState direction;
+        private final int column;
+        @NonNull
+        private final SortState direction;
 
-        public Directive(int column, SortState direction) {
+        Directive(int column, @NonNull SortState direction) {
             this.column = column;
             this.direction = direction;
         }
     }
 
-    private static Directive EMPTY_DIRECTIVE = new Directive(-1, SortState.UNSORTED);
+    @NonNull
+    private static final Directive EMPTY_DIRECTIVE = new Directive(-1, SortState.UNSORTED);
 }

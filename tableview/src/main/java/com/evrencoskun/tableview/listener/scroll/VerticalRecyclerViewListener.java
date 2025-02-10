@@ -1,25 +1,35 @@
 /*
- * Copyright (c) 2018. Evren Coşkun
+ * MIT License
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Copyright (c) 2021 Evren Coşkun
  *
- *        http://www.apache.org/licenses/LICENSE-2.0
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
  *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 package com.evrencoskun.tableview.listener.scroll;
 
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.MotionEvent;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.evrencoskun.tableview.ITableView;
 import com.evrencoskun.tableview.adapter.recyclerview.CellRecyclerView;
@@ -33,28 +43,31 @@ public class VerticalRecyclerViewListener extends RecyclerView.OnScrollListener 
 
     private static final String LOG_TAG = VerticalRecyclerViewListener.class.getSimpleName();
 
-    private CellRecyclerView mRowHeaderRecyclerView, mCellRecyclerView;
+    @NonNull
+    private final CellRecyclerView mRowHeaderRecyclerView, mCellRecyclerView;
     private RecyclerView mLastTouchedRecyclerView;
 
     // Y Position means row position
     private int mYPosition;
     private boolean mIsMoved;
 
+    @Nullable
     private RecyclerView mCurrentRVTouched = null;
 
-    public VerticalRecyclerViewListener(ITableView tableView) {
+    public VerticalRecyclerViewListener(@NonNull ITableView tableView) {
         this.mRowHeaderRecyclerView = tableView.getRowHeaderRecyclerView();
         this.mCellRecyclerView = tableView.getCellRecyclerView();
     }
 
-    private float dx=0, dy=0;
+    private float dx = 0, dy = 0;
 
     /**
      * check which direction the user is scrolling
+     *
      * @param ev
      * @return
      */
-    private boolean verticalDirection(MotionEvent ev) {
+    private boolean verticalDirection(@NonNull MotionEvent ev) {
         if (ev.getAction() == MotionEvent.ACTION_MOVE) {
             if (dx == 0) {
                 dx = ev.getX();
@@ -68,25 +81,23 @@ public class VerticalRecyclerViewListener extends RecyclerView.OnScrollListener 
             dy = ev.getY();
 
             // if user scrolled more horizontally than vertically
-            if (xdiff > ydiff) {
-                return false;
-            }
+            return xdiff <= ydiff;
         }
 
         return true;
     }
 
     @Override
-    public boolean onInterceptTouchEvent(RecyclerView rv, MotionEvent e) {
+    public boolean onInterceptTouchEvent(@NonNull RecyclerView rv, @NonNull MotionEvent e) {
 
         // Prevent multitouch, once we start to listen with a RV,
         // we ignore any other RV until the touch is released (UP)
-        if((mCurrentRVTouched != null && rv != mCurrentRVTouched)) {
+        if ((mCurrentRVTouched != null && rv != mCurrentRVTouched)) {
             return true;
         }
-            
+
         // If scroll direction is not Vertical, then ignore and reset last RV touched
-        if(!verticalDirection(e)) {
+        if (!verticalDirection(e)) {
             mCurrentRVTouched = null;
             return false;
         }
@@ -145,7 +156,7 @@ public class VerticalRecyclerViewListener extends RecyclerView.OnScrollListener 
     }
 
     @Override
-    public void onTouchEvent(RecyclerView rv, MotionEvent e) {
+    public void onTouchEvent(@NonNull RecyclerView rv, @NonNull MotionEvent e) {
     }
 
     @Override
@@ -153,7 +164,7 @@ public class VerticalRecyclerViewListener extends RecyclerView.OnScrollListener 
     }
 
     @Override
-    public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+    public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
         // CellRecyclerViews should be scrolled after the RowHeaderRecyclerView.
         // Because it is one of the main compared criterion to make each columns fit.
 
@@ -170,7 +181,7 @@ public class VerticalRecyclerViewListener extends RecyclerView.OnScrollListener 
     }
 
     @Override
-    public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+    public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
         super.onScrollStateChanged(recyclerView, newState);
 
         if (newState == RecyclerView.SCROLL_STATE_IDLE) {

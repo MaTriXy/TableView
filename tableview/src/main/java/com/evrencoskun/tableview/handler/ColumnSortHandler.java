@@ -1,23 +1,32 @@
 /*
- * Copyright (c) 2018. Evren Coşkun
+ * MIT License
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Copyright (c) 2021 Evren Coşkun
  *
- *        http://www.apache.org/licenses/LICENSE-2.0
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
  *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 package com.evrencoskun.tableview.handler;
 
-import android.support.v7.util.DiffUtil;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.recyclerview.widget.DiffUtil;
 
 import com.evrencoskun.tableview.ITableView;
 import com.evrencoskun.tableview.adapter.recyclerview.CellRecyclerViewAdapter;
@@ -43,9 +52,9 @@ import java.util.List;
 
 public class ColumnSortHandler {
 
-    private CellRecyclerViewAdapter mCellRecyclerViewAdapter;
-    private RowHeaderRecyclerViewAdapter mRowHeaderRecyclerViewAdapter;
-    private ColumnHeaderRecyclerViewAdapter mColumnHeaderRecyclerViewAdapter;
+    private final CellRecyclerViewAdapter<List<ISortableModel>> mCellRecyclerViewAdapter;
+    private final RowHeaderRecyclerViewAdapter<ISortableModel> mRowHeaderRecyclerViewAdapter;
+    private final ColumnHeaderRecyclerViewAdapter mColumnHeaderRecyclerViewAdapter;
 
     private List<ColumnSortStateChangedListener> columnSortStateChangedListeners = new ArrayList<>();
     private boolean mEnableAnimation = true;
@@ -58,18 +67,18 @@ public class ColumnSortHandler {
         this.mEnableAnimation = mEnableAnimation;
     }
 
-    public ColumnSortHandler(ITableView tableView) {
-        this.mCellRecyclerViewAdapter = (CellRecyclerViewAdapter) tableView.getCellRecyclerView()
+    public ColumnSortHandler(@NonNull ITableView tableView) {
+        this.mCellRecyclerViewAdapter = (CellRecyclerViewAdapter<List<ISortableModel>>) tableView.getCellRecyclerView()
                 .getAdapter();
 
-        this.mRowHeaderRecyclerViewAdapter = (RowHeaderRecyclerViewAdapter) tableView
+        this.mRowHeaderRecyclerViewAdapter = (RowHeaderRecyclerViewAdapter<ISortableModel>) tableView
                 .getRowHeaderRecyclerView().getAdapter();
 
         this.mColumnHeaderRecyclerViewAdapter = (ColumnHeaderRecyclerViewAdapter) tableView
                 .getColumnHeaderRecyclerView().getAdapter();
     }
 
-    public void sortByRowHeader(final SortState sortState) {
+    public void sortByRowHeader(@NonNull final SortState sortState) {
         List<ISortableModel> originalRowHeaderList = mRowHeaderRecyclerViewAdapter.getItems();
         List<ISortableModel> sortedRowHeaderList = new ArrayList<>(originalRowHeaderList);
 
@@ -78,7 +87,7 @@ public class ColumnSortHandler {
 
         if (sortState != SortState.UNSORTED) {
             // Do descending / ascending sort
-            Collections.sort(sortedRowHeaderList, new RowHeaderSortComparator(sortState) );
+            Collections.sort(sortedRowHeaderList, new RowHeaderSortComparator(sortState));
 
             // Sorting Columns/Cells using the same logic has sorting DataSet
             RowHeaderForCellSortComparator rowHeaderForCellSortComparator
@@ -96,7 +105,7 @@ public class ColumnSortHandler {
         swapItems(originalRowHeaderList, sortedRowHeaderList, sortedList, sortState);
     }
 
-    public void sort(int column, SortState sortState) {
+    public void sort(int column, @NonNull SortState sortState) {
         List<List<ISortableModel>> originalList = mCellRecyclerViewAdapter.getItems();
         List<List<ISortableModel>> sortedList = new ArrayList<>(originalList);
 
@@ -112,10 +121,10 @@ public class ColumnSortHandler {
             // Sorting RowHeader using the same logic has sorting DataSet
             ColumnForRowHeaderSortComparator columnForRowHeaderSortComparator
                     = new ColumnForRowHeaderSortComparator(
-                            originalRowHeaderList,
-                            originalList,
-                            column,
-                            sortState);
+                    originalRowHeaderList,
+                    originalList,
+                    column,
+                    sortState);
 
             Collections.sort(sortedRowHeaderList, columnForRowHeaderSortComparator);
         }
@@ -127,17 +136,17 @@ public class ColumnSortHandler {
         swapItems(originalList, sortedList, column, sortedRowHeaderList, sortState);
     }
 
-    private void swapItems(List<ISortableModel> oldRowHeader,
-                           List<ISortableModel> newRowHeader,
-                           List<List<ISortableModel>> newColumnItems,
-                           SortState sortState
+    private void swapItems(@NonNull List<ISortableModel> oldRowHeader,
+                           @NonNull List<ISortableModel> newRowHeader,
+                           @NonNull List<List<ISortableModel>> newColumnItems,
+                           @NonNull SortState sortState
     ) {
 
         // Set new items without calling notifyCellDataSetChanged method of CellRecyclerViewAdapter
         mRowHeaderRecyclerViewAdapter.setItems(newRowHeader, !mEnableAnimation);
         mCellRecyclerViewAdapter.setItems(newColumnItems, !mEnableAnimation);
 
-        if(mEnableAnimation) {
+        if (mEnableAnimation) {
             // Find the differences between old cell items and new items.
             final RowHeaderSortCallback diffCallback = new RowHeaderSortCallback(oldRowHeader, newRowHeader);
             final DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(diffCallback);
@@ -151,14 +160,14 @@ public class ColumnSortHandler {
         }
     }
 
-    private void swapItems(List<List<ISortableModel>> oldItems, List<List<ISortableModel>>
-            newItems, int column, List<ISortableModel> newRowHeader, SortState sortState) {
+    private void swapItems(@NonNull List<List<ISortableModel>> oldItems, @NonNull List<List<ISortableModel>>
+            newItems, int column, @NonNull List<ISortableModel> newRowHeader, @NonNull SortState sortState) {
 
         // Set new items without calling notifyCellDataSetChanged method of CellRecyclerViewAdapter
         mCellRecyclerViewAdapter.setItems(newItems, !mEnableAnimation);
         mRowHeaderRecyclerViewAdapter.setItems(newRowHeader, !mEnableAnimation);
 
-        if(mEnableAnimation) {
+        if (mEnableAnimation) {
             // Find the differences between old cell items and new items.
             final ColumnSortCallback diffCallback = new ColumnSortCallback(oldItems, newItems, column);
             final DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(diffCallback);
@@ -172,15 +181,14 @@ public class ColumnSortHandler {
         }
     }
 
-    public void swapItems(List<List<ISortableModel>> newItems, int column) {
+    public void swapItems(@NonNull List<List<ISortableModel>> newItems, int column) {
 
-        List<List<ISortableModel>> oldItems = (List<List<ISortableModel>>)
-                mCellRecyclerViewAdapter.getItems();
+        List<List<ISortableModel>> oldItems = mCellRecyclerViewAdapter.getItems();
 
         // Set new items without calling notifyCellDataSetChanged method of CellRecyclerViewAdapter
         mCellRecyclerViewAdapter.setItems(newItems, !mEnableAnimation);
 
-        if(mEnableAnimation) {
+        if (mEnableAnimation) {
             // Find the differences between old cell items and new items.
             final ColumnSortCallback diffCallback = new ColumnSortCallback(oldItems, newItems, column);
             final DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(diffCallback);
@@ -191,10 +199,12 @@ public class ColumnSortHandler {
 
     }
 
+    @NonNull
     public SortState getSortingStatus(int column) {
         return mColumnHeaderRecyclerViewAdapter.getColumnSortHelper().getSortingStatus(column);
     }
 
+    @Nullable
     public SortState getRowHeaderSortingStatus() {
         return mRowHeaderRecyclerViewAdapter.getRowHeaderSortHelper().getSortingStatus();
     }
@@ -204,7 +214,7 @@ public class ColumnSortHandler {
      *
      * @param listener ColumnSortStateChangedListener listener.
      */
-    public void addColumnSortStateChangedListener(ColumnSortStateChangedListener listener) {
+    public void addColumnSortStateChangedListener(@NonNull ColumnSortStateChangedListener listener) {
         if (columnSortStateChangedListeners == null) {
             columnSortStateChangedListeners = new ArrayList<>();
         }

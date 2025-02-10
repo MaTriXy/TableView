@@ -1,26 +1,35 @@
 /*
- * Copyright (c) 2018. Evren Coşkun
+ * MIT License
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Copyright (c) 2021 Evren Coşkun
  *
- *        http://www.apache.org/licenses/LICENSE-2.0
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
  *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 package com.evrencoskun.tableview.adapter.recyclerview;
 
 import android.content.Context;
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
+
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.evrencoskun.tableview.R;
 import com.evrencoskun.tableview.listener.scroll.HorizontalRecyclerViewListener;
@@ -39,7 +48,7 @@ public class CellRecyclerView extends RecyclerView {
     private boolean mIsHorizontalScrollListenerRemoved = true;
     private boolean mIsVerticalScrollListenerRemoved = true;
 
-    public CellRecyclerView(Context context) {
+    public CellRecyclerView(@NonNull Context context) {
         super(context);
 
         // These are necessary.
@@ -60,7 +69,6 @@ public class CellRecyclerView extends RecyclerView {
         super.onScrolled(dx, dy);
     }
 
-
     public int getScrolledX() {
         return mScrolledX;
     }
@@ -69,11 +77,12 @@ public class CellRecyclerView extends RecyclerView {
         mScrolledX = 0;
     }
 
-    public int getScrolledY() { return mScrolledY; }
-
+    public int getScrolledY() {
+        return mScrolledY;
+    }
 
     @Override
-    public void addOnScrollListener(OnScrollListener listener) {
+    public void addOnScrollListener(@NonNull OnScrollListener listener) {
         if (listener instanceof HorizontalRecyclerViewListener) {
             if (mIsHorizontalScrollListenerRemoved) {
                 mIsHorizontalScrollListenerRemoved = false;
@@ -98,7 +107,7 @@ public class CellRecyclerView extends RecyclerView {
     }
 
     @Override
-    public void removeOnScrollListener(OnScrollListener listener) {
+    public void removeOnScrollListener(@NonNull OnScrollListener listener) {
         if (listener instanceof HorizontalRecyclerViewListener) {
             if (mIsHorizontalScrollListenerRemoved) {
                 // Do not let remove the listener
@@ -130,7 +139,6 @@ public class CellRecyclerView extends RecyclerView {
         return !mIsHorizontalScrollListenerRemoved;
     }
 
-
     /**
      * Begin a standard fling with an initial velocity along each axis in pixels per second.
      * If the velocity given is below the system-defined minimum this method will return false
@@ -138,10 +146,8 @@ public class CellRecyclerView extends RecyclerView {
      *
      * @param velocityX Initial horizontal velocity in pixels per second
      * @param velocityY Initial vertical velocity in pixels per second
-     *
      * @return true if the fling was started, false if the velocity was too low to fling or
      * LayoutManager does not support scrolling in the axis fling is issued.
-     *
      * @see LayoutManager#canScrollVertically()
      * @see LayoutManager#canScrollHorizontally()
      */

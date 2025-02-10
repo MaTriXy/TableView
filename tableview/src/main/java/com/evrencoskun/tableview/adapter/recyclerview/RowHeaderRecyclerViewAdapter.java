@@ -1,24 +1,34 @@
 /*
- * Copyright (c) 2018. Evren Coşkun
+ * MIT License
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Copyright (c) 2021 Evren Coşkun
  *
- *        http://www.apache.org/licenses/LICENSE-2.0
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
  *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 package com.evrencoskun.tableview.adapter.recyclerview;
 
 import android.content.Context;
 import android.view.ViewGroup;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.evrencoskun.tableview.ITableView;
 import com.evrencoskun.tableview.adapter.ITableAdapter;
@@ -33,25 +43,26 @@ import java.util.List;
  */
 
 public class RowHeaderRecyclerViewAdapter<RH> extends AbstractRecyclerViewAdapter<RH> {
-
-    private ITableAdapter mTableAdapter;
-    private ITableView mTableView;
+    @NonNull
+    private final ITableAdapter mTableAdapter;
+    private final ITableView mTableView;
     private RowHeaderSortHelper mRowHeaderSortHelper;
 
-    public RowHeaderRecyclerViewAdapter(Context context, List<RH> itemList, ITableAdapter
+    public RowHeaderRecyclerViewAdapter(@NonNull Context context, @Nullable List<RH> itemList, @NonNull ITableAdapter
             tableAdapter) {
         super(context, itemList);
         this.mTableAdapter = tableAdapter;
         this.mTableView = tableAdapter.getTableView();
     }
 
+    @NonNull
     @Override
-    public AbstractViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public AbstractViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         return mTableAdapter.onCreateRowHeaderViewHolder(parent, viewType);
     }
 
     @Override
-    public void onBindViewHolder(AbstractViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull AbstractViewHolder holder, int position) {
         mTableAdapter.onBindRowHeaderViewHolder(holder, getItem(position), position);
     }
 
@@ -61,11 +72,11 @@ public class RowHeaderRecyclerViewAdapter<RH> extends AbstractRecyclerViewAdapte
     }
 
     @Override
-    public void onViewAttachedToWindow(AbstractViewHolder viewHolder) {
+    public void onViewAttachedToWindow(@NonNull AbstractViewHolder viewHolder) {
         super.onViewAttachedToWindow(viewHolder);
 
         SelectionState selectionState = mTableView.getSelectionHandler().getRowSelectionState
-                (viewHolder.getAdapterPosition());
+                (viewHolder.getBindingAdapterPosition());
 
         // Control to ignore selection color
         if (!mTableView.isIgnoreSelectionColors()) {
@@ -79,6 +90,7 @@ public class RowHeaderRecyclerViewAdapter<RH> extends AbstractRecyclerViewAdapte
         viewHolder.setSelected(selectionState);
     }
 
+    @NonNull
     public RowHeaderSortHelper getRowHeaderSortHelper() {
         if (mRowHeaderSortHelper == null) {
             // It helps to store sorting state of row headers
@@ -86,5 +98,4 @@ public class RowHeaderRecyclerViewAdapter<RH> extends AbstractRecyclerViewAdapte
         }
         return mRowHeaderSortHelper;
     }
-
 }

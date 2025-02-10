@@ -1,23 +1,30 @@
 /*
- * Copyright (c) 2018. Evren Coşkun
+ * MIT License
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Copyright (c) 2021 Evren Coşkun
  *
- *        http://www.apache.org/licenses/LICENSE-2.0
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
  *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 package com.evrencoskun.tableview.filter;
 
-import android.text.TextUtils;
+import androidx.annotation.NonNull;
 
 import com.evrencoskun.tableview.ITableView;
 
@@ -33,17 +40,19 @@ public class Filter {
     /**
      * List of filter items to be used for filtering.
      */
-    private List<FilterItem> filterItems;
+    @NonNull
+    private final List<FilterItem> filterItems;
 
     /**
      * The TableView instance used in this scope.
      */
-    private ITableView tableView;
+    @NonNull
+    private final ITableView tableView;
 
     /**
      * @param tableView The TableView to be filtered.
      */
-    public Filter(ITableView tableView) {
+    public Filter(@NonNull ITableView tableView) {
         this.tableView = tableView;
         this.filterItems = new ArrayList<>();
     }
@@ -54,7 +63,7 @@ public class Filter {
      *
      * @param filter the filter string.
      */
-    public void set(String filter) {
+    public void set(@NonNull String filter) {
         set(-1, filter);
     }
 
@@ -65,7 +74,7 @@ public class Filter {
      * @param column the target column for filtering.
      * @param filter the filter string.
      */
-    public void set(int column, String filter) {
+    public void set(int column, @NonNull String filter) {
         final FilterItem filterItem = new FilterItem(
                 column == -1 ? FilterType.ALL : FilterType.COLUMN,
                 column,
@@ -73,12 +82,12 @@ public class Filter {
         );
 
         if (isAlreadyFiltering(column, filterItem)) {
-            if (TextUtils.isEmpty(filter)) {
+            if (filter.isEmpty()) {
                 remove(column, filterItem);
             } else {
                 update(column, filterItem);
             }
-        } else if (!TextUtils.isEmpty(filter)) {
+        } else if (!filter.isEmpty()) {
             add(filterItem);
         }
     }
@@ -88,7 +97,7 @@ public class Filter {
      *
      * @param filterItem The filter item to be added to the list.
      */
-    private void add(FilterItem filterItem) {
+    private void add(@NonNull FilterItem filterItem) {
         filterItems.add(filterItem);
         tableView.filter(this);
     }
@@ -99,7 +108,7 @@ public class Filter {
      * @param column     The column to be checked for removing the filter item.
      * @param filterItem The filter item to be removed.
      */
-    private void remove(int column, FilterItem filterItem) {
+    private void remove(int column, @NonNull FilterItem filterItem) {
         // This would remove a FilterItem from the Filter list when the filter is cleared.
         // Used Iterator for removing instead of canonical loop to prevent ConcurrentModificationException.
         for (Iterator<FilterItem> filterItemIterator = filterItems.iterator(); filterItemIterator.hasNext(); ) {
@@ -121,7 +130,7 @@ public class Filter {
      * @param column     The column in which filter item will be updated.
      * @param filterItem The updated filter item.
      */
-    private void update(int column, FilterItem filterItem) {
+    private void update(int column, @NonNull FilterItem filterItem) {
         // This would update an existing FilterItem from the Filter list.
         // Used Iterator for updating instead of canonical loop to prevent ConcurrentModificationException.
         for (Iterator<FilterItem> filterItemIterator = filterItems.iterator(); filterItemIterator.hasNext(); ) {
@@ -144,7 +153,7 @@ public class Filter {
      * @param filterItem The filter item to be checked.
      * @return True if a filter item for a specific column or for ALL is already in the list.
      */
-    private boolean isAlreadyFiltering(int column, FilterItem filterItem) {
+    private boolean isAlreadyFiltering(int column, @NonNull FilterItem filterItem) {
         // This would determine if Filter is already filtering ALL or a specified COLUMN.
         for (FilterItem item : filterItems) {
             if (column == -1 && item.getFilterType().equals(filterItem.getFilterType())) {
@@ -161,6 +170,7 @@ public class Filter {
      *
      * @return The list of filter items.
      */
+    @NonNull
     public List<FilterItem> getFilterItems() {
         return this.filterItems;
     }

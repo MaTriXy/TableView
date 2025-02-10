@@ -1,21 +1,31 @@
 /*
- * Copyright (c) 2018. Evren Coşkun
+ * MIT License
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Copyright (c) 2021 Evren Coşkun
  *
- *        http://www.apache.org/licenses/LICENSE-2.0
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
  *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 package com.evrencoskun.tableview.pagination;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.evrencoskun.tableview.ITableView;
 import com.evrencoskun.tableview.adapter.AdapterDataSetChangedListener;
@@ -34,19 +44,21 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class Pagination<T> implements IPagination {
+public class Pagination implements IPagination {
 
     private static final int DEFAULT_ITEMS_PER_PAGE = 10;
     private int itemsPerPage;
     private int currentPage;
     private int pageCount;
-    private List<List<ISortableModel>> originalCellData, currentPageCellData;
-    private List<ISortableModel> originalRowData, currentPageRowData;
-
-    private RowHeaderRecyclerViewAdapter mRowHeaderRecyclerViewAdapter;
-    private CellRecyclerViewAdapter mCellRecyclerViewAdapter;
-    private ITableView tableView;
-
+    @NonNull
+    private List<List<ISortableModel>> originalCellData;
+    @NonNull
+    private List<ISortableModel> originalRowData;
+    @Nullable
+    private RowHeaderRecyclerViewAdapter<ISortableModel> mRowHeaderRecyclerViewAdapter;
+    @Nullable
+    private CellRecyclerViewAdapter<List<ISortableModel>> mCellRecyclerViewAdapter;
+    @Nullable
     private OnTableViewPageTurnedListener onTableViewPageTurnedListener;
 
     /**
@@ -54,7 +66,7 @@ public class Pagination<T> implements IPagination {
      *
      * @param tableView The TableView to be paginated.
      */
-    public Pagination(ITableView tableView) {
+    public Pagination(@NonNull ITableView tableView) {
         this(tableView, DEFAULT_ITEMS_PER_PAGE, null);
     }
 
@@ -64,7 +76,7 @@ public class Pagination<T> implements IPagination {
      * @param tableView    The TableView to be paginated.
      * @param itemsPerPage The number of items per page.
      */
-    public Pagination(ITableView tableView, int itemsPerPage) {
+    public Pagination(@NonNull ITableView tableView, int itemsPerPage) {
         this(tableView, itemsPerPage, null);
     }
 
@@ -76,41 +88,36 @@ public class Pagination<T> implements IPagination {
      * @param itemsPerPage The number of items per page.
      * @param listener     The OnTableViewPageTurnedListener for the TableView.
      */
-    public Pagination(ITableView tableView, int itemsPerPage, OnTableViewPageTurnedListener listener) {
+    public Pagination(@NonNull ITableView tableView, int itemsPerPage, @Nullable OnTableViewPageTurnedListener listener) {
         initialize(tableView, itemsPerPage, listener);
     }
 
     @SuppressWarnings("unchecked")
-    private void initialize(ITableView tableView, int itemsPerPage, OnTableViewPageTurnedListener listener) {
+    private void initialize(@NonNull ITableView tableView, int itemsPerPage, @Nullable OnTableViewPageTurnedListener listener) {
         this.onTableViewPageTurnedListener = listener;
         this.itemsPerPage = itemsPerPage;
-        this.tableView = tableView;
         this.mRowHeaderRecyclerViewAdapter = (RowHeaderRecyclerViewAdapter) tableView
                 .getRowHeaderRecyclerView().getAdapter();
         this.mCellRecyclerViewAdapter = (CellRecyclerViewAdapter) tableView.getCellRecyclerView()
                 .getAdapter();
-        this.tableView.getColumnSortHandler().addColumnSortStateChangedListener(columnSortStateChangedListener);
-        this.tableView.getAdapter().addAdapterDataSetChangedListener(adapterDataSetChangedListener);
-        this.tableView.getFilterHandler().addFilterChangedListener(filterChangedListener);
+        tableView.getColumnSortHandler().addColumnSortStateChangedListener(columnSortStateChangedListener);
+        tableView.getAdapter().addAdapterDataSetChangedListener(adapterDataSetChangedListener);
+        tableView.getFilterHandler().addFilterChangedListener(filterChangedListener);
         this.originalCellData = tableView.getAdapter().getCellRecyclerViewAdapter().getItems();
         this.originalRowData = tableView.getAdapter().getRowHeaderRecyclerViewAdapter().getItems();
         this.currentPage = 1;
         reloadPages();
     }
 
-    @SuppressWarnings("unchecked")
     private void reloadPages() {
-        if (originalCellData != null && originalRowData != null) {
-            paginateData();
-            goToPage(currentPage);
-        }
+        paginateData();
+        goToPage(currentPage);
     }
 
-    @SuppressWarnings("unchecked")
     private void paginateData() {
         int start, end;
-        currentPageCellData = new ArrayList<>();
-        currentPageRowData = new ArrayList<>();
+        List<List<ISortableModel>> currentPageCellData = new ArrayList<>();
+        List<ISortableModel> currentPageRowData = new ArrayList<>();
         // No pagination if itemsPerPage is 0, all data will be loaded into the TableView.
         if (itemsPerPage == 0) {
             currentPageCellData.addAll(originalCellData);
@@ -169,7 +176,7 @@ public class Pagination<T> implements IPagination {
     }
 
     @Override
-    public void setOnTableViewPageTurnedListener(OnTableViewPageTurnedListener onTableViewPageTurnedListener) {
+    public void setOnTableViewPageTurnedListener(@Nullable OnTableViewPageTurnedListener onTableViewPageTurnedListener) {
         this.onTableViewPageTurnedListener = onTableViewPageTurnedListener;
     }
 
@@ -198,59 +205,56 @@ public class Pagination<T> implements IPagination {
         return itemsPerPage > 0;
     }
 
+    @NonNull
     @SuppressWarnings("unchecked")
-    private AdapterDataSetChangedListener adapterDataSetChangedListener =
+    private final AdapterDataSetChangedListener adapterDataSetChangedListener =
             new AdapterDataSetChangedListener() {
                 @Override
-                public void onRowHeaderItemsChanged(List rowHeaderItems) {
-                    if (rowHeaderItems != null) {
-                        originalRowData = new ArrayList<>(rowHeaderItems);
-                        reloadPages();
-                    }
+                public void onRowHeaderItemsChanged(@NonNull List rowHeaderItems) {
+                    originalRowData = new ArrayList<>(rowHeaderItems);
+                    reloadPages();
                 }
 
                 @Override
-                public void onCellItemsChanged(List cellItems) {
-                    if (cellItems != null) {
-                        originalCellData = new ArrayList<>(cellItems);
-                        reloadPages();
-                    }
+                public void onCellItemsChanged(@NonNull List cellItems) {
+                    originalCellData = new ArrayList<>(cellItems);
+                    reloadPages();
                 }
             };
 
-    @SuppressWarnings("unchecked")
-    private FilterChangedListener filterChangedListener =
-            new FilterChangedListener() {
+    @NonNull
+    private final FilterChangedListener<ISortableModel> filterChangedListener =
+            new FilterChangedListener<ISortableModel>() {
                 @Override
-                public void onFilterChanged(List filteredCellItems, List filteredRowHeaderItems) {
+                public void onFilterChanged(@NonNull List<List<ISortableModel>> filteredCellItems, @NonNull List<ISortableModel> filteredRowHeaderItems) {
                     originalCellData = new ArrayList<>(filteredCellItems);
                     originalRowData = new ArrayList<>(filteredRowHeaderItems);
                     reloadPages();
                 }
 
                 @Override
-                public void onFilterCleared(List originalCellItems, List originalRowHeaderItems) {
+                public void onFilterCleared(@NonNull List<List<ISortableModel>> originalCellItems, @NonNull List<ISortableModel> originalRowHeaderItems) {
                     originalCellData = new ArrayList<>(originalCellItems);
                     originalRowData = new ArrayList<>(originalRowHeaderItems);
                     reloadPages();
                 }
             };
 
-    private ColumnSortStateChangedListener columnSortStateChangedListener =
+    @NonNull
+    private final ColumnSortStateChangedListener columnSortStateChangedListener =
             new ColumnSortStateChangedListener() {
                 @Override
-                public void onColumnSortStatusChanged(int column, SortState sortState) {
+                public void onColumnSortStatusChanged(int column, @NonNull SortState sortState) {
                     paginateOnColumnSort(column, sortState);
                 }
 
                 @Override
-                public void onRowHeaderSortStatusChanged(SortState sortState) {
+                public void onRowHeaderSortStatusChanged(@NonNull SortState sortState) {
                     paginateOnColumnSort(-1, sortState);
                 }
             };
 
-    @SuppressWarnings("unchecked")
-    private void paginateOnColumnSort(int column, SortState sortState) {
+    private void paginateOnColumnSort(int column, @NonNull SortState sortState) {
         List<ISortableModel> sortedRowHeaderList = new ArrayList<>(originalRowData);
         List<List<ISortableModel>> sortedList = new ArrayList<>(originalCellData);
         if (sortState != SortState.UNSORTED) {

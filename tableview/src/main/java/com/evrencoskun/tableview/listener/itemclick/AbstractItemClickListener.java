@@ -1,25 +1,35 @@
 /*
- * Copyright (c) 2018. Evren Coşkun
+ * MIT License
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Copyright (c) 2021 Evren Coşkun
  *
- *        http://www.apache.org/licenses/LICENSE-2.0
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
  *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 package com.evrencoskun.tableview.listener.itemclick;
 
-import android.support.v7.widget.RecyclerView;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.evrencoskun.tableview.ITableView;
 import com.evrencoskun.tableview.adapter.recyclerview.CellRecyclerView;
@@ -32,12 +42,16 @@ import com.evrencoskun.tableview.listener.ITableViewListener;
 
 public abstract class AbstractItemClickListener implements RecyclerView.OnItemTouchListener {
     private ITableViewListener mListener;
+    @NonNull
     protected GestureDetector mGestureDetector;
+    @NonNull
     protected CellRecyclerView mRecyclerView;
+    @NonNull
     protected SelectionHandler mSelectionHandler;
+    @NonNull
     protected ITableView mTableView;
 
-    public AbstractItemClickListener(CellRecyclerView recyclerView, ITableView tableView) {
+    public AbstractItemClickListener(@NonNull CellRecyclerView recyclerView, @NonNull ITableView tableView) {
         this.mRecyclerView = recyclerView;
         this.mTableView = tableView;
         this.mSelectionHandler = tableView.getSelectionHandler();
@@ -45,6 +59,7 @@ public abstract class AbstractItemClickListener implements RecyclerView.OnItemTo
         mGestureDetector = new GestureDetector(mRecyclerView.getContext(), new GestureDetector
                 .SimpleOnGestureListener() {
 
+            @Nullable
             MotionEvent start;
 
             @Override
@@ -55,6 +70,11 @@ public abstract class AbstractItemClickListener implements RecyclerView.OnItemTo
             @Override
             public boolean onSingleTapConfirmed(MotionEvent e) {
                 return clickAction(mRecyclerView, e);
+            }
+
+            @Override
+            public boolean onDoubleTap(MotionEvent e) {
+                return doubleClickAction(e);
             }
 
             @Override
@@ -75,17 +95,21 @@ public abstract class AbstractItemClickListener implements RecyclerView.OnItemTo
     }
 
     @Override
-    public boolean onInterceptTouchEvent(RecyclerView view, MotionEvent e) {
-        return mGestureDetector.onTouchEvent(e);
+    public boolean onInterceptTouchEvent(@NonNull RecyclerView view, @NonNull MotionEvent e) {
+        mGestureDetector.onTouchEvent(e);
+        // Return false intentionally
+        return false;
     }
 
     @Override
-    public void onTouchEvent(RecyclerView view, MotionEvent motionEvent) { }
+    public void onTouchEvent(@NonNull RecyclerView view, @NonNull MotionEvent motionEvent) {
+    }
 
     @Override
-    public void onRequestDisallowInterceptTouchEvent(boolean disallowIntercept) {}
+    public void onRequestDisallowInterceptTouchEvent(boolean disallowIntercept) {
+    }
 
-
+    @NonNull
     protected ITableViewListener getTableViewListener() {
         if (mListener == null) {
             mListener = mTableView.getTableViewListener();
@@ -93,7 +117,9 @@ public abstract class AbstractItemClickListener implements RecyclerView.OnItemTo
         return mListener;
     }
 
-    abstract protected boolean clickAction(RecyclerView view, MotionEvent e);
+    abstract protected boolean clickAction(@NonNull RecyclerView view, @NonNull MotionEvent e);
 
-    abstract protected void longPressAction(MotionEvent e);
+    abstract protected void longPressAction(@NonNull MotionEvent e);
+
+    abstract protected boolean doubleClickAction(@NonNull MotionEvent e);
 }

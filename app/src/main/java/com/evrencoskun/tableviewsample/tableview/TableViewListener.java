@@ -1,26 +1,34 @@
 /*
- * Copyright (c) 2018. Evren Coşkun
+ * MIT License
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Copyright (c) 2021 Evren Coşkun
  *
- *        http://www.apache.org/licenses/LICENSE-2.0
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
  *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 package com.evrencoskun.tableviewsample.tableview;
 
 import android.content.Context;
-import android.support.annotation.NonNull;
-import android.support.v7.widget.RecyclerView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.evrencoskun.tableview.TableView;
 import com.evrencoskun.tableview.listener.ITableViewListener;
@@ -33,12 +41,12 @@ import com.evrencoskun.tableviewsample.tableview.popup.RowHeaderLongPressPopup;
  */
 
 public class TableViewListener implements ITableViewListener {
+    @NonNull
+    private final Context mContext;
+    @NonNull
+    private final TableView mTableView;
 
-    private Toast mToast;
-    private Context mContext;
-    private TableView mTableView;
-
-    public TableViewListener(TableView tableView) {
+    public TableViewListener(@NonNull TableView tableView) {
         this.mContext = tableView.getContext();
         this.mTableView = tableView;
     }
@@ -56,6 +64,19 @@ public class TableViewListener implements ITableViewListener {
         // Do what you want.
         showToast("Cell " + column + " " + row + " has been clicked.");
 
+    }
+
+    /**
+     * Called when user double click any cell item.
+     *
+     * @param cellView : Clicked Cell ViewHolder.
+     * @param column   : X (Column) position of Clicked Cell item.
+     * @param row      : Y (Row) position of Clicked Cell item.
+     */
+    @Override
+    public void onCellDoubleClicked(@NonNull RecyclerView.ViewHolder cellView, int column, int row) {
+        // Do what you want.
+        showToast("Cell " + column + " " + row + " has been double clicked.");
     }
 
     /**
@@ -86,6 +107,18 @@ public class TableViewListener implements ITableViewListener {
     }
 
     /**
+     * Called when user double click any column header item.
+     *
+     * @param columnHeaderView : Clicked Column Header ViewHolder.
+     * @param column           : X (Column) position of Clicked Column Header item.
+     */
+    @Override
+    public void onColumnHeaderDoubleClicked(@NonNull RecyclerView.ViewHolder columnHeaderView, int column) {
+        // Do what you want.
+        showToast("Column header  " + column + " has been double clicked.");
+    }
+
+    /**
      * Called when user long press any column header item.
      *
      * @param columnHeaderView : Long Pressed Column Header ViewHolder.
@@ -95,7 +128,7 @@ public class TableViewListener implements ITableViewListener {
     public void onColumnHeaderLongPressed(@NonNull RecyclerView.ViewHolder columnHeaderView, int
             column) {
 
-        if (columnHeaderView != null && columnHeaderView instanceof ColumnHeaderViewHolder) {
+        if (columnHeaderView instanceof ColumnHeaderViewHolder) {
             // Create Long Press Popup
             ColumnHeaderLongPressPopup popup = new ColumnHeaderLongPressPopup(
                     (ColumnHeaderViewHolder) columnHeaderView, mTableView);
@@ -112,10 +145,20 @@ public class TableViewListener implements ITableViewListener {
      */
     @Override
     public void onRowHeaderClicked(@NonNull RecyclerView.ViewHolder rowHeaderView, int row) {
-        // Do what you want.
-
-
+        // Do whatever you want.
         showToast("Row header " + row + " has been clicked.");
+    }
+
+    /**
+     * Called when user double click any Row Header item.
+     *
+     * @param rowHeaderView : Clicked Row Header ViewHolder.
+     * @param row           : Y (Row) position of Clicked Row Header item.
+     */
+    @Override
+    public void onRowHeaderDoubleClicked(@NonNull RecyclerView.ViewHolder rowHeaderView, int row) {
+        // Do whatever you want.
+        showToast("Row header " + row + " has been double clicked.");
     }
 
     /**
@@ -127,21 +170,14 @@ public class TableViewListener implements ITableViewListener {
     @Override
     public void onRowHeaderLongPressed(@NonNull RecyclerView.ViewHolder rowHeaderView, int row) {
 
-        if (rowHeaderView != null) {
-            // Create Long Press Popup
-            RowHeaderLongPressPopup popup = new RowHeaderLongPressPopup(rowHeaderView, mTableView);
-            // Show
-            popup.show();
-        }
+        // Create Long Press Popup
+        RowHeaderLongPressPopup popup = new RowHeaderLongPressPopup(rowHeaderView, mTableView);
+        // Show
+        popup.show();
     }
 
 
     private void showToast(String p_strMessage) {
-        if (mToast == null) {
-            mToast = Toast.makeText(mContext, "", Toast.LENGTH_SHORT);
-        }
-
-        mToast.setText(p_strMessage);
-        mToast.show();
+        Toast.makeText(mContext, p_strMessage, Toast.LENGTH_SHORT).show();
     }
 }

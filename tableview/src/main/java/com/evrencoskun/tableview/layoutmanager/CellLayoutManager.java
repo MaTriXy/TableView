@@ -1,37 +1,46 @@
 /*
- * Copyright (c) 2018. Evren Coşkun
+ * MIT License
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Copyright (c) 2021 Evren Coşkun
  *
- *        http://www.apache.org/licenses/LICENSE-2.0
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
  *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 package com.evrencoskun.tableview.layoutmanager;
 
 import android.content.Context;
 import android.os.Handler;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.util.SparseArray;
+import android.util.SparseIntArray;
 import android.view.View;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.evrencoskun.tableview.ITableView;
 import com.evrencoskun.tableview.adapter.recyclerview.CellRecyclerView;
 import com.evrencoskun.tableview.adapter.recyclerview.holder.AbstractViewHolder;
 import com.evrencoskun.tableview.listener.scroll.HorizontalRecyclerViewListener;
 import com.evrencoskun.tableview.util.TableViewUtils;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
 
@@ -43,33 +52,32 @@ public class CellLayoutManager extends LinearLayoutManager {
     private static final String LOG_TAG = CellLayoutManager.class.getSimpleName();
     private static final int IGNORE_LEFT = -99999;
 
-    private ColumnHeaderLayoutManager mColumnHeaderLayoutManager;
-    private LinearLayoutManager mRowHeaderLayoutManager;
+    @NonNull
+    private final ColumnHeaderLayoutManager mColumnHeaderLayoutManager;
 
-    private CellRecyclerView mRowHeaderRecyclerView;
-    private CellRecyclerView mCellRecyclerView;
+    @NonNull
+    private final CellRecyclerView mRowHeaderRecyclerView;
 
     private HorizontalRecyclerViewListener mHorizontalListener;
-    private ITableView mTableView;
+    @NonNull
+    private final ITableView mTableView;
 
-    private final Map<Integer, Map<Integer, Integer>> mCachedWidthList = new HashMap();
+    @NonNull
+    private final SparseArray<SparseIntArray> mCachedWidthList = new SparseArray<>();
     //TODO: Store a single instance for both cell and column cache width values.
 
     private int mLastDy = 0;
     private boolean mNeedSetLeft;
     private boolean mNeedFit;
 
-    public CellLayoutManager(Context context, ITableView tableView) {
+    public CellLayoutManager(@NonNull Context context, @NonNull ITableView tableView) {
         super(context);
         this.mTableView = tableView;
-        this.mCellRecyclerView = tableView.getCellRecyclerView();
         this.mColumnHeaderLayoutManager = tableView.getColumnHeaderLayoutManager();
-        this.mRowHeaderLayoutManager = tableView.getRowHeaderLayoutManager();
         this.mRowHeaderRecyclerView = tableView.getRowHeaderRecyclerView();
 
         initialize();
     }
-
 
     private void initialize() {
         this.setOrientation(VERTICAL);
@@ -81,10 +89,6 @@ public class CellLayoutManager extends LinearLayoutManager {
         super.onAttachedToWindow(view);
 
         // initialize the instances
-        if (mCellRecyclerView == null) {
-            mCellRecyclerView = mTableView.getCellRecyclerView();
-        }
-
         if (mHorizontalListener == null) {
             mHorizontalListener = mTableView.getHorizontalRecyclerViewListener();
         }
@@ -116,7 +120,6 @@ public class CellLayoutManager extends LinearLayoutManager {
         }
     }
 
-
     /**
      * This method helps to fit all columns which are displayed on screen.
      * Especially it will be called when TableView is scrolled on vertically.
@@ -141,15 +144,9 @@ public class CellLayoutManager extends LinearLayoutManager {
         if (mNeedSetLeft & scrollingLeft) {
             // Works just like invoke later of swing utils.
             Handler handler = new Handler();
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    fitWidthSize2(true);
-                }
-            });
+            handler.post(() -> fitWidthSize2(true));
         }
     }
-
 
     private int fitSize(int position, int left, boolean scrollingUp) {
         int cellRight = -1;
@@ -218,8 +215,7 @@ public class CellLayoutManager extends LinearLayoutManager {
                         // It shouldn't be scroll horizontally and the problem is gotten just for
                         // first visible item.
                         if (offset > 0 && xPosition == childLayoutManager
-                                .findFirstVisibleItemPosition() && mCellRecyclerView
-                                .getScrollState() != RecyclerView.SCROLL_STATE_IDLE) {
+                                .findFirstVisibleItemPosition() && getCellRecyclerViewScrollState() != RecyclerView.SCROLL_STATE_IDLE) {
 
                             int scrollPosition = mHorizontalListener.getScrollPosition();
                             offset = mHorizontalListener.getScrollPositionOffset() + scrollX;
@@ -251,7 +247,6 @@ public class CellLayoutManager extends LinearLayoutManager {
         return right;
     }
 
-
     /**
      * Alternative method of fitWidthSize().
      * The main difference is this method works after main thread draw the ui components.
@@ -277,7 +272,6 @@ public class CellLayoutManager extends LinearLayoutManager {
 
         mNeedSetLeft = false;
     }
-
 
     /**
      * Alternative method of fitWidthSize().
@@ -307,7 +301,6 @@ public class CellLayoutManager extends LinearLayoutManager {
         int columnCacheWidth = mColumnHeaderLayoutManager.getCacheWidth(position);
         View column = mColumnHeaderLayoutManager.findViewByPosition(position);
 
-
         if (column != null) {
             // Loop for all rows which are visible.
             for (int j = findFirstVisibleItemPosition(); j < findLastVisibleItemPosition() + 1;
@@ -330,14 +323,16 @@ public class CellLayoutManager extends LinearLayoutManager {
                                 columnHeaderOffset);
                     }
 
-                    fit2(position, j, columnCacheWidth, column, childLayoutManager);
+                    if (childLayoutManager != null) {
+                        fit2(position, j, columnCacheWidth, column, childLayoutManager);
+                    }
                 }
             }
         }
     }
 
-    private void fit2(int xPosition, int yPosition, int columnCachedWidth, View column,
-                      ColumnLayoutManager childLayoutManager) {
+    private void fit2(int xPosition, int yPosition, int columnCachedWidth, @NonNull View column,
+                      @NonNull ColumnLayoutManager childLayoutManager) {
         int cellCacheWidth = getCacheWidth(yPosition, xPosition);
         View cell = childLayoutManager.findViewByPosition(xPosition);
 
@@ -372,11 +367,10 @@ public class CellLayoutManager extends LinearLayoutManager {
         }
     }
 
-
     public boolean shouldFitColumns(int yPosition) {
 
         // Scrolling horizontally
-        if (mCellRecyclerView.getScrollState() == RecyclerView.SCROLL_STATE_IDLE) {
+        if (getCellRecyclerViewScrollState() == RecyclerView.SCROLL_STATE_IDLE) {
 
             int lastVisiblePosition = findLastVisibleItemPosition();
             CellRecyclerView lastCellRecyclerView = (CellRecyclerView) findViewByPosition
@@ -394,9 +388,8 @@ public class CellLayoutManager extends LinearLayoutManager {
         return false;
     }
 
-
     @Override
-    public void measureChildWithMargins(View child, int widthUsed, int heightUsed) {
+    public void measureChildWithMargins(@NonNull View child, int widthUsed, int heightUsed) {
         super.measureChildWithMargins(child, widthUsed, heightUsed);
 
         // If has fixed width is true, than calculation of the column width is not necessary.
@@ -410,7 +403,7 @@ public class CellLayoutManager extends LinearLayoutManager {
                 .getLayoutManager();
 
         // the below codes should be worked when it is scrolling vertically
-        if (mCellRecyclerView.getScrollState() != RecyclerView.SCROLL_STATE_IDLE) {
+        if (getCellRecyclerViewScrollState() != RecyclerView.SCROLL_STATE_IDLE) {
             if (childLayoutManager.isNeedFit()) {
 
                 // Scrolling up
@@ -432,7 +425,7 @@ public class CellLayoutManager extends LinearLayoutManager {
             // That means,populating for the first time like fetching all data to display.
             // It shouldn't be worked when it is scrolling horizontally ."getLastDx() == 0"
             // control for it.
-        } else if (childLayoutManager.getLastDx() == 0 && mCellRecyclerView.getScrollState() ==
+        } else if (childLayoutManager.getLastDx() == 0 && getCellRecyclerViewScrollState() ==
                 RecyclerView.SCROLL_STATE_IDLE) {
 
             if (childLayoutManager.isNeedFit()) {
@@ -444,7 +437,7 @@ public class CellLayoutManager extends LinearLayoutManager {
 
             if (mNeedFit) {
                 // for the first time to populate adapter
-                if (mRowHeaderLayoutManager.findLastVisibleItemPosition() == position) {
+                if (mTableView.getRowHeaderLayoutManager().findLastVisibleItemPosition() == position) {
 
                     fitWidthSize2(false);
                     Log.e(LOG_TAG, position + " fitWidthSize populating data for the first time");
@@ -455,6 +448,7 @@ public class CellLayoutManager extends LinearLayoutManager {
         }
     }
 
+    @NonNull
     public AbstractViewHolder[] getVisibleCellViewsByColumnPosition(int xPosition) {
         int visibleChildCount = findLastVisibleItemPosition() - findFirstVisibleItemPosition() + 1;
         int index = 0;
@@ -472,6 +466,7 @@ public class CellLayoutManager extends LinearLayoutManager {
         return viewHolders;
     }
 
+    @Nullable
     public AbstractViewHolder getCellViewHolder(int xPosition, int yPosition) {
         CellRecyclerView cellRowRecyclerView = (CellRecyclerView) findViewByPosition(yPosition);
 
@@ -483,8 +478,7 @@ public class CellLayoutManager extends LinearLayoutManager {
     }
 
     public void remeasureAllChild() {
-        // TODO: the below code causes requestLayout() improperly called by com.evrencoskun
-        // TODO: .tableview.adapter
+        // TODO: the below code causes requestLayout() improperly called by com.evrencoskun.tableview.adapter
 
         for (int j = 0; j < getChildCount(); j++) {
             CellRecyclerView recyclerView = (CellRecyclerView) getChildAt(j);
@@ -498,9 +492,9 @@ public class CellLayoutManager extends LinearLayoutManager {
      * Allows to set cache width value for single cell item.
      */
     public void setCacheWidth(int row, int column, int width) {
-        Map<Integer, Integer> cellRowCache = mCachedWidthList.get(row);
+        SparseIntArray cellRowCache = mCachedWidthList.get(row);
         if (cellRowCache == null) {
-            cellRowCache = new HashMap<>();
+            cellRowCache = new SparseIntArray();
         }
 
         cellRowCache.put(column, width);
@@ -518,16 +512,21 @@ public class CellLayoutManager extends LinearLayoutManager {
     }
 
     public int getCacheWidth(int row, int column) {
-        Map<Integer, Integer> cellRowCaches = mCachedWidthList.get(row);
+        SparseIntArray cellRowCaches = mCachedWidthList.get(row);
         if (cellRowCaches != null) {
-            Integer cachedWidth = cellRowCaches.get(column);
-            if (cachedWidth != null) {
-                return cellRowCaches.get(column);
-            }
+            return cellRowCaches.get(column, -1);
         }
         return -1;
     }
 
+    /**
+     * Clears the widths which have been calculated and reused.
+     */
+    public void clearCachedWidths() {
+        mCachedWidthList.clear();
+    }
+
+    @NonNull
     public CellRecyclerView[] getVisibleCellRowRecyclerViews() {
         int length = findLastVisibleItemPosition() - findFirstVisibleItemPosition() + 1;
         CellRecyclerView[] recyclerViews = new CellRecyclerView[length];
@@ -539,5 +538,9 @@ public class CellLayoutManager extends LinearLayoutManager {
         }
 
         return recyclerViews;
+    }
+
+    private int getCellRecyclerViewScrollState() {
+        return mTableView.getCellRecyclerView().getScrollState();
     }
 }
